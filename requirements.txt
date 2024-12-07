@@ -8,4 +8,4 @@ PyPDF2==3
 python-docx
 faiss-cpu
 transformers
-google-generative-ai
+langchain-google-genai
