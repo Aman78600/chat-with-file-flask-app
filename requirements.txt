@@ -4,9 +4,10 @@ langchain==0.0.318
 sentence-transformers
 Gunicorn
 protobuf
-langchain-groq
 PyPDF2==3
 python-docx
 faiss-cpu
 transformers
-langchain-google-genai
+langchain-groq
+grpcio
+langchain-groq
