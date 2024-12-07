@@ -9,3 +9,4 @@ python-docx
 faiss-cpu
 transformers
 langchain-google-genai
+sentence-transformers
