@@ -5,7 +5,7 @@ import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 import tempfile
 
@@ -77,10 +77,12 @@ def create_vector_db(text: str) -> FAISS:
     vectorstore = FAISS.from_texts(texts, embeddings)
     return vectorstore
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",
-    temperature=0.1,
-    api_key="AIzaSyCzbg4K-P_iNGY8OlLsAqIKN29M9AauMu4"
+from langchain_groq import ChatGroq
+
+llm = ChatGroq(
+    temperature=0, 
+    groq_api_key='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', 
+    model_name="llama-3.1-70b-versatile"
 )
 
 def ask_question(query: str, context: str = None) -> str:
