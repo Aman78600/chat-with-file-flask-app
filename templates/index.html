@@ -406,18 +406,18 @@
             <model-viewer src="{{ url_for('static', filename='models/i_am_an_ai_assistant_named_internlm-xcomposer.glb') }}" auto-rotate camera-controls alt="cube" background-color="#455A64" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto" camera-orbit="0deg 90deg 2.5m"
                 camera-target="0deg 0deg 0m" interaction-prompt="none" reveal="auto" loading="eager" poster="https://example.com/poster.jpg"></model-viewer>
         </div>
-        <h1 class="upload_hading">Upload a File</h1>
+        <h1 class="upload_hading">Upload File</h1>
         <form action="/upload" method="post" enctype="multipart/form-data">
             <input type="file" name="pdf_file" accept="application/pdf">
             <button class="cta-button upload_button" type="submit">Upload</button>
         </form>
         <br> {% if process_text_status == 'Success!' %}
         <div style="height: 50px; width: 100%; background-color: #24c83759; text-align: center; padding: 10px;">
-            {{ process_text_status }}
+            File Uploaded
         </div>
         {% elif process_text_status %}
         <div style="height: 50px; width: 100%; background-color: #c8242459; text-align: center; padding: 10px;">
-            {{ process_text_status }}
+            File not uploaded
         </div>
         {% endif %}
     </main>
