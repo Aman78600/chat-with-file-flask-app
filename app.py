@@ -3,12 +3,11 @@ import PyPDF2
 import docx
 import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-# from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 import tempfile
-import pickle
 
 def read_pdf(file_path) -> str:
     """Extract text from a PDF file"""
@@ -55,7 +54,12 @@ def process_file(uploaded_file) -> str:
         os.unlink(tmp_file_path)
     
     return text
-embeddings = pickle.load(open("embaddings.pkl",'rb'))
+
+embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={'normalize_embeddings': True}
+    )
 
 text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -145,5 +149,5 @@ def answer():
     return jsonify({'response': response})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
     
