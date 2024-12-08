@@ -124,17 +124,25 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route("/upload", methods=["POST"])
-def upload_pdf():
+@app.route("/upload_file", methods=["POST"])
+def upload_file():
     global vectordb  # Declare as global to modify outside scope
     if request.method == "POST":
-        uploaded_file = request.files.get("pdf_file")
+        uploaded_file = request.files.get("file")
+        if uploaded_file is None:
+            return jsonify({'response': 'No file uploaded.'})
+        
+        file_extension = uploaded_file.filename.split('.')[-1].lower()
+        supported_extensions = ['pdf', 'docx', 'doc', 'txt']
+        if file_extension not in supported_extensions:
+            return jsonify({'response': 'Unsupported file format.'})
+        
         text = process_file(uploaded_file)
         if len(text) > 2:
             vectordb = create_vector_db(text=text)
-            return render_template("index.html", process_text_status='Success!')
+            return jsonify({'response': 'File uploaded successfully.'})
         else:
-            return render_template("index.html", process_text_status='Failed!')
+            return jsonify({'response': 'Failed to process the file.'})
 
 @app.route('/ask_question', methods=['POST'])
 def answer():
