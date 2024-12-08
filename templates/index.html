@@ -209,16 +209,52 @@
             transform: translateY(-2px);
         }
         
+        #fileInput {
+            display: none;
+            /* Hide the default file input */
+        }
+        
+        .custom-file-upload {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+            background: var(--hilight-color);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+        }
+        
+        .custom-file-upload:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            color: var(--height-light-text);
+            background: var(--black);
+        }
+        
+        .custom-file-upload:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        
         .upload_button {
-            height: 40px;
-            align-items: center;
-            padding: 0;
-            width: 100px;
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--height-light-text);
+            background: var(--black);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
         }
         
         .upload_button:hover {
-            color: var(--height-light-text);
-            background-color: var(--hilight-color);
+            color: var(--whight);
+            background: var(--hilight-color);
             box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.2);
         }
         
@@ -233,7 +269,6 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: var(--hilight-color);
             border: none;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(255, 0, 0, 0.2);
@@ -241,11 +276,14 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s;
-            color: var(--whight);
+            color: var(--height-light-text);
+            background: var(--black);
             box-shadow: white 0px 0px 10px;
         }
         
         .chatbot-button:hover {
+            color: var(--whight);
+            background: var(--hilight-color);
             transform: scale(1.5);
             box-shadow: rgb(251, 251, 251) 0px 0px 50px;
         }
@@ -360,6 +398,11 @@
         .website-link:hover {
             color: var(--height-light-text);
         }
+        
+        #fileInput {
+            display: none;
+            /* Hide the default file input */
+        }
     </style>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.js"></script>
     <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
@@ -407,19 +450,15 @@
                 camera-target="0deg 0deg 0m" interaction-prompt="none" reveal="auto" loading="eager" poster="https://example.com/poster.jpg"></model-viewer>
         </div>
         <h1 class="upload_hading">Upload File</h1>
-        <form action="/upload" method="post" enctype="multipart/form-data">
-            <input type="file" name="pdf_file" accept="application/pdf">
-            <button class="cta-button upload_button" type="submit">Upload</button>
-        </form>
-        <br> {% if process_text_status == 'Success!' %}
-        <div style="height: 50px; width: 100%; background-color: #24c83759; text-align: center; padding: 10px;">
-            File Uploaded
+        <div class="upload-container">
+            <label for="fileInput" class="custom-file-upload">Choose File</label>
+            <input type="file" name="pdf_file" accept="application/pdf" id="fileInput"> <button class="cta-button upload_button" onclick="handleFileUpload()">Upload File</button>
+            <div id="uploadFileMassage"></div>
+            <br>
+            <progress id="uploadProgress" value="0" max="100" style="display:none;"></progress>
         </div>
-        {% elif process_text_status %}
-        <div style="height: 50px; width: 100%; background-color: #c8242459; text-align: center; padding: 10px;">
-            File not uploaded
-        </div>
-        {% endif %}
+
+
     </main>
 
     <div class="chatbot-widget">
@@ -476,22 +515,56 @@
 
 
 
-
-
-
     <script>
-        // JavaScript for toggling the mobile menu
         const hamburger = document.getElementById('hamburger');
         const navLinks = document.getElementById('nav-links');
 
         hamburger.addEventListener('click', () => {
             navLinks.classList.toggle('active');
         });
-    </script>
-    <script>
+
         function toggleChat() {
             const chatWindow = document.getElementById('chatWindow');
             chatWindow.classList.toggle('show');
+        }
+
+        // File upload and message handling
+        function handleFileUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadMessage = document.getElementById('uploadFileMassage');
+            const uploadProgress = document.getElementById('uploadProgress');
+
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Display progress bar
+                uploadProgress.style.display = 'block';
+                uploadProgress.value = 0;
+
+                // Send the file to the server
+                fetch('/upload_file', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        uploadMessage.textContent = data.response;
+                        uploadMessage.style.color = data.response.includes('successfully') ? 'green' : 'red';
+                        uploadProgress.style.display = 'none';
+                    })
+                    .catch(error => {
+                        uploadMessage.textContent = 'File upload failed. Please try again.';
+                        uploadMessage.style.color = 'red';
+                        uploadProgress.style.display = 'none';
+                        console.error('Error:', error);
+                    });
+            } else {
+                uploadMessage.textContent = 'No file selected.';
+                uploadMessage.style.color = 'red';
+            }
         }
 
         function sendMessage() {
@@ -537,12 +610,5 @@
                     .catch(error => console.error('Error:', error));
             }
         }
-
-        // Allow sending message with Enter key
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
     </script>
 </body>
