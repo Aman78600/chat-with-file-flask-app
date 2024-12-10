@@ -5,7 +5,7 @@ import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
-# from langchain_google_genai import ChatGoogleGenerativeAI
+import google.generativeai as genai
 from langchain.prompts import PromptTemplate
 import tempfile
 
@@ -77,13 +77,14 @@ def create_vector_db(text: str) -> FAISS:
     vectorstore = FAISS.from_texts(texts, embeddings)
     return vectorstore
 
-from langchain_groq import ChatGroq
+# Fetch the API key from the environment
+api_key = os.getenv("GOOGLE_API_KEY")
 
-llm = ChatGroq(
-    temperature=0, 
-    groq_api_key='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', 
-    model_name="llama-3.1-70b-versatile"
-)
+if not api_key:
+    raise EnvironmentError("Missing `GOOGLE_API_KEY` environment variable. Please set it in the environment.")
+
+genai.configure(api_key=api_key)
+llm = genai.GenerativeModel("gemini-1.5-flash")
 
 def ask_question(query: str, context: str = None) -> str:
     """Get response from Gemini API"""
@@ -106,15 +107,14 @@ def ask_question(query: str, context: str = None) -> str:
             template=template,
             input_variables=["context", "question"]
         )
-        response = llm.predict(prompt.format(context=context, question=query))
+        response = llm.generate_content(prompt.format(airline_context=airline_context, question=query)).text
     else:
         template = "You are a helpful assistant. Answer naturally:\n\nUser: {question}\nAssistant:"
         prompt = PromptTemplate(
             template=template,
             input_variables=["question"]
         )
-        response = llm.predict(prompt.format(question=query))
-    
+        response = llm.generate_content(prompt.format(question=query)).text
     return response
 
 vectordb = None  # Ensure vectordb is initialized
@@ -147,14 +147,16 @@ def upload_file():
 @app.route('/ask_question', methods=['POST'])
 def answer():
     global vectordb  # Access the global variable
-    if vectordb is None:
-        return jsonify({'response': 'No document uploaded yet.'})
+    # if vectordb is None:
+    #     return jsonify({'response': 'No document uploaded yet.'})
     
     data = request.get_json()
     question = data.get('question', '')
-
-    results = vectordb.similarity_search_with_score(question, k=2)
-    context = "\n".join([doc.page_content for doc, _ in results])
+    try:
+        results = vectordb.similarity_search_with_score(question, k=2)
+        context = "\n".join([doc.page_content for doc, _ in results])  
+    except:
+        context=''
     response = ask_question(question, context)
     return jsonify({'response': response})
 
