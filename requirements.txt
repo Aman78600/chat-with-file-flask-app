@@ -8,6 +8,5 @@ PyPDF2==3
 python-docx
 faiss-cpu
 transformers
-langchain-groq
 grpcio
-langchain-groq
+google-generativeai
